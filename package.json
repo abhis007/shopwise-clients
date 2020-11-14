@@ -14,11 +14,13 @@
     "@react-native-community/masked-view": "^0.1.10",
     "@react-navigation/native": "^5.8.5",
     "@react-navigation/stack": "^5.12.2",
+    "base64-arraybuffer": "^0.2.0",
     "moment": "^2.29.1",
     "native-base": "^2.13.14",
     "react": "16.13.1",
     "react-native": "0.63.3",
     "react-native-camera-kit": "^8.0.4",
+    "react-native-fs": "^2.16.6",
     "react-native-gesture-handler": "^1.8.0",
     "react-native-modal-datetime-picker": "^9.0.0",
     "react-native-reanimated": "^1.13.1",
@@ -26,7 +28,8 @@
     "react-native-screens": "^2.12.0",
     "react-native-sqlite-storage": "^5.0.0",
     "react-native-table-component": "^1.2.1",
-    "react-native-vector-icons": "^7.1.0"
+    "react-native-vector-icons": "^7.1.0",
+    "xlsx": "^0.16.8"
   },
   "devDependencies": {
     "@babel/core": "^7.12.3",

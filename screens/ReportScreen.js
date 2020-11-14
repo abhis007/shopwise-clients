@@ -4,6 +4,9 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import {StyleSheet,  Alert,} from 'react-native';
 import SQLite from 'react-native-sqlite-storage';
 import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
+import RNFS from 'react-native-fs';
+import * as XLSX from 'xlsx';
+import {encode} from 'base64-arraybuffer';
 
 import moment from "moment";
 
@@ -114,7 +117,7 @@ let time =hours+':'+min;
 
   const insertToDatabase =  () => {
     db.transaction(function (tx) {
-    let Table =  tx.executeSql("  CREATE TABLE IF NOT EXISTS  visitor_log (pk_visitor_log_id	INTEGER UNIQUE,visitor_name	TEXT NOT NULL,visitor_mob	TEXT NOT NULL,visitor_location	TEXT NOT NULL,visitor_timestamp	TEXT NOT NULL,visitor_temperature 	INTEGER,PRIMARY KEY(pk_visitor_log_id AUTOINCREMENT))",[]);
+    let Table =  tx.executeSql("  CREATE TABLE IF NOT EXISTS  visitor_log (pk_visitor_log_id    INTEGER UNIQUE,visitor_name TEXT NOT NULL,visitor_mob   TEXT NOT NULL,visitor_location  TEXT NOT NULL,visitor_timestamp TEXT NOT NULL,visitor_temperature   INTEGER,PRIMARY KEY(pk_visitor_log_id AUTOINCREMENT))",[]);
     console.log(Table);
     tx.executeSql(
         "INSERT INTO visitor_log (visitor_name, visitor_mob, visitor_location,visitor_timestamp,visitor_temperature) VALUES ( ?, ?, ?, ?,?)", 
@@ -148,6 +151,28 @@ let time =hours+':'+min;
   const formatDate = date => {
     return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
   };
+
+  const exportData = () => {
+    var csvData = data;
+    const fileName = 'ExportedData'
+    const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+    const fileExtension = '.xlsx';
+    const ws = XLSX.utils.aoa_to_sheet(csvData);
+    const wb = { Sheets: { 'data': ws }, SheetNames: ['data'] };
+    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+
+    var path = RNFS.DownloadDirectoryPath + '/' + fileName + fileExtension;
+    RNFS.writeFile(path, encode(excelBuffer), 'base64')
+      .then((success) => {
+        console.log('FILE WRITTEN !', path);
+      })
+      .catch((err) => {
+        console.log(err.message);
+      });
+    // const data = new Blob([excelBuffer], {type: fileType});
+    // FileSaver.saveAs(data, fileName + fileExtension);
+    console.log(ws)
+}
 
     return (
       <Container>
@@ -258,6 +283,9 @@ let time =hours+':'+min;
         <Button rounded success block style={{marginTop:15,padding:20}} onPress={searchData}> 
             <Text>Search</Text>
           </Button>
+        <Button rounded success block style={{marginTop:15,padding:20}} onPress={exportData}> 
+            <Text>Export</Text>
+          </Button>
           </View> 
         
 
@@ -273,6 +301,8 @@ let time =hours+':'+min;
     
       </Container>
     );
+
+    
  
 }
 export default ReportScreen
