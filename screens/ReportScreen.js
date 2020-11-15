@@ -1,13 +1,13 @@
 import React, { Component,useState  } from 'react';
 import { Container, Header, Title, Content, Footer, FooterTab, Button, Left, Right, Body, Text, Item, Input,View,DatePicker } from 'native-base';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import {StyleSheet,  Alert,} from 'react-native';
+import {StyleSheet,  Alert, PermissionsAndroid,} from 'react-native';
 import SQLite from 'react-native-sqlite-storage';
 import { Table, TableWrapper, Row, Rows, Col, Cols, Cell } from 'react-native-table-component';
 import RNFS from 'react-native-fs';
 import * as XLSX from 'xlsx';
 import {encode} from 'base64-arraybuffer';
-
+import Share from 'react-native-share';
 import moment from "moment";
 
 const db= SQLite.openDatabase(
@@ -152,27 +152,79 @@ let time =hours+':'+min;
     return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
   };
 
-  const exportData = () => {
-    var csvData = data;
-    const fileName = 'ExportedData'
-    const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
-    const fileExtension = '.xlsx';
-    const ws = XLSX.utils.aoa_to_sheet(csvData);
-    const wb = { Sheets: { 'data': ws }, SheetNames: ['data'] };
-    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const requestAndroidPermission = async (permission, successCallback, failureCallback) => {
+    try {
+      const granted = await PermissionsAndroid.request(
+        permission
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        successCallback()
+      } else {
+        failureCallback()
+      }
+    } catch (err) {
+      console.err("Failed while getting permission " + permission, err);
+      failureCallback()
+    }
+  };
 
-    var path = RNFS.DownloadDirectoryPath + '/' + fileName + fileExtension;
-    RNFS.writeFile(path, encode(excelBuffer), 'base64')
-      .then((success) => {
-        console.log('FILE WRITTEN !', path);
-      })
-      .catch((err) => {
-        console.log(err.message);
-      });
-    // const data = new Blob([excelBuffer], {type: fileType});
-    // FileSaver.saveAs(data, fileName + fileExtension);
-    console.log(ws)
+  const exportData = (successCallback, failureCallback) => {
+
+    const exportToXsl = () => {
+      var csvData = data;
+      const fileName = 'ExportedData'
+      const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+      const fileExtension = '.xlsx';
+      const ws = XLSX.utils.aoa_to_sheet(csvData);
+      const wb = { Sheets: { 'data': ws }, SheetNames: ['data'] };
+      const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+
+      var path = RNFS.DownloadDirectoryPath + '/' + fileName + fileExtension;
+      RNFS.writeFile(path, encode(excelBuffer), 'base64')
+        .then((success) => {
+          console.log('FILE WRITTEN !', path);
+          successCallback(path)
+        })
+        .catch((err) => {
+          console.log(err.message);
+          failureCallback(err)
+        });
+    }
+
+    const exportFailedPermission = () => {
+      failureCallback("Unable to get the required permissions to proceed to export")
+    }
+
+    requestAndroidPermission(
+      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      exportToXsl,
+      exportFailedPermission
+    )
 }
+
+  const shareData = () => {
+
+    const exportSuccessCallback = (path) => {
+      Share.open({
+          title: "Exported data",
+          message: "Sample exported data",
+          url: "file://" + path,
+          subject: "Sample subject"
+        })
+        .then((res) => {
+          console.log(res);
+        })
+        .catch((err) => {
+          err && console.log(err);
+        });
+    }
+
+    const exportFailureCallback = (err) => {
+      alert(err)
+    }
+    
+    exportData(exportSuccessCallback, exportFailureCallback)
+  }
 
     return (
       <Container>
@@ -283,9 +335,13 @@ let time =hours+':'+min;
         <Button rounded success block style={{marginTop:15,padding:20}} onPress={searchData}> 
             <Text>Search</Text>
           </Button>
-        <Button rounded success block style={{marginTop:15,padding:20}} onPress={exportData}> 
-            <Text>Export</Text>
+        {data.length > 0 ?
+          <Button rounded success block style={{marginTop:15,padding:20}} onPress={shareData}> 
+            <Text>Share</Text>
           </Button>
+          : null
+        }
+        
           </View> 
         
 
