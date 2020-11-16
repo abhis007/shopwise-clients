@@ -29,9 +29,7 @@ const db= SQLite.openDatabase(
     let [tableHeader,setTableHeader] = useState( ['Name', 'Phone', 'Location', 'Date ', 'Time'])
     let [data,setData] = useState('')
      
- 
-    var today = new Date()
-    let currentDate = today.getDate() + '-' + (today.getMonth() + 1) + '-' + today.getFullYear() ;
+    let currentDate = Date.now()
     let[visitorFromDate, setVisitorFromDate] = useState(currentDate);
     let [visitorToDate, setVisitorToDate] = useState(currentDate);
     
@@ -239,16 +237,14 @@ let time =hours+':'+min;
        </View> 
        <View style={{flex: 2,  flexDirection: 'row',marginTop:-10}}>
         <DatePicker
-            defaultSelected={visitorFromDate}
+            defaultDate={visitorFromDate}
             minimumDate={new Date(2020, 1, 1)}
-            
-
             locale={"en"}
             timeZoneOffsetInMinutes={undefined}
             modalTransparent={false}
             animationType={"fade"}
             androidMode={"default"}
-            placeHolderText={visitorFromDate}
+            placeHolderText={moment(visitorFromDate).format('DD/MM/YYYY')}
             textStyle={{ color: "green" }}
             placeHolderTextStyle={{ color: "#d3d3d3" }}
             onDateChange={setVisitorFromDate}
@@ -261,16 +257,14 @@ let time =hours+':'+min;
        </View> 
        <View style={{flex: 2,  flexDirection: 'row',marginTop:-10}}>
        <DatePicker
-            defaultSelected={setVisitorToDate}
+            defaultDate={visitorToDate}
             minimumDate={new Date(2020, 1, 1)}
-            
-
             locale={"en"}
             timeZoneOffsetInMinutes={undefined}
             modalTransparent={false}
             animationType={"fade"}
             androidMode={"default"}
-            placeHolderText={visitorFromDate}
+            placeHolderText={moment(visitorToDate).format('DD/MM/YYYY')}
             textStyle={{ color: "green" }}
             placeHolderTextStyle={{ color: "#d3d3d3" }}
             onDateChange={setVisitorToDate}
